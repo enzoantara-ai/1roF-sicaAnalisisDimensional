@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detective Dimensional · Análisis dimensional</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--tx:#1b2433;--mu:#5b6678;--pr:#1F3A5F;--ac:#E07B00;--ok:#2E8B57;--okb:#e2f3e8;--ko:#c0392b;--kob:#fbe3e3;--bd:#d5dce8}
+@media (prefers-color-scheme:dark){:root{--bg:#10151f;--card:#1a2232;--tx:#eef2f8;--mu:#a3adbf;--pr:#8db7ec;--ac:#ffa53a;--ok:#5fd08e;--okb:#183a2a;--ko:#ff7b6b;--kob:#4a2220;--bd:#2f3b52}}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;justify-content:center;padding:16px}
+.wrap{width:100%;max-width:680px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:22px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+h1{margin:0 0 4px;color:var(--pr);font-size:1.8rem}
+h2{margin:0 0 14px;font-size:1.25rem;line-height:1.4}
+.sub{color:var(--ac);font-weight:bold;margin:0 0 14px}
+.hide{display:none}
+.tip{background:var(--okb);border-left:5px solid var(--ok);border-radius:8px;padding:10px 14px;margin:14px 0;font-size:.95rem;line-height:1.5}
+input[type=text]{width:100%;padding:12px;font-size:1rem;border:2px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);margin:6px 0 14px}
+button{font-family:inherit;cursor:pointer}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:12px;padding:14px 22px;font-size:1.05rem;font-weight:bold;width:100%}
+.btn:hover{filter:brightness(1.08)}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;color:var(--mu);margin-bottom:8px;gap:8px}
+.bar{height:10px;background:var(--bd);border-radius:6px;overflow:hidden;margin-bottom:18px}
+.bar>div{height:100%;background:var(--ac);width:0;transition:width .3s}
+.opt{display:block;width:100%;text-align:left;background:var(--bg);color:var(--tx);border:2px solid var(--bd);border-radius:12px;padding:13px 14px;margin:9px 0;font-size:1.05rem}
+.opt:hover:not(:disabled){border-color:var(--ac)}
+.opt.ok{background:var(--okb);border-color:var(--ok)}
+.opt.ko{background:var(--kob);border-color:var(--ko)}
+.opt:disabled{cursor:default}
+.k{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:50%;background:var(--pr);color:var(--card);font-weight:bold;font-size:.85rem;margin-right:10px}
+.fb{border-radius:10px;padding:12px 14px;margin:12px 0;line-height:1.5;font-size:.97rem}
+.fb.ok{background:var(--okb);border-left:5px solid var(--ok)}
+.fb.ko{background:var(--kob);border-left:5px solid var(--ko)}
+.big{font-size:3rem;font-weight:bold;color:var(--pr);margin:6px 0}
+.lvl{display:inline-block;background:var(--ac);color:#fff;font-weight:bold;padding:6px 16px;border-radius:20px;margin:4px 0 10px}
+.rev{border-top:1px solid var(--bd);padding:10px 0;font-size:.95rem;line-height:1.5}
+.row2{display:flex;gap:10px;margin-top:14px}
+.row2 .btn{flex:1}
+.sec{background:var(--pr)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="card" id="home">
+  <h1>🔍 Detective Dimensional</h1>
+  <p class="sub">Análisis dimensional · 1.° de secundaria</p>
+  <p>Descubre la fórmula dimensional de cada magnitud. Son <b>10 preguntas</b> y puedes jugar <b>todas las veces que quieras</b>.</p>
+  <div class="tip"><b>Recuerda:</b> Longitud = L · Masa = M · Tiempo = T. Los números, π y las funciones trigonométricas valen <b>1</b>. Al multiplicar se suman exponentes y al dividir se restan.</div>
+  <label for="nom"><b>Tu nombre (opcional):</b></label>
+  <input type="text" id="nom" maxlength="30" placeholder="Escribe tu nombre">
+  <button class="btn" id="go">¡Empezar la misión!</button>
+  <p id="best" style="color:var(--mu);font-size:.9rem;margin:12px 0 0"></p>
+</div>
+
+<div class="card hide" id="quiz">
+  <div class="top"><span id="num"></span><span id="streak"></span><span id="pts"></span></div>
+  <div class="bar"><div id="prog"></div></div>
+  <h2 id="q"></h2>
+  <div id="opts"></div>
+  <div id="fb"></div>
+  <button class="btn hide" id="next">Siguiente ➜</button>
+</div>
+
+<div class="card hide" id="end" style="text-align:center">
+  <h1 id="who"></h1>
+  <div class="big" id="score"></div>
+  <div class="lvl" id="lvl"></div>
+  <p id="msg"></p>
+  <div id="rev" style="text-align:left"></div>
+  <div class="row2"><button class="btn" id="again">🔄 Jugar otra vez</button></div>
+</div>
+
+</div>
+
+<script>
+(function(){
+// Cada pregunta: q = enunciado, o = opciones (la primera es la correcta), e = explicación
+var Q=[
+{q:"¿Cuál es la fórmula dimensional del <b>área</b> de un cuadrado (largo × ancho)?",o:["L<sup>2</sup>","L","L<sup>3</sup>","LT<sup>−1</sup>"],e:"[Área] = [largo] · [ancho] = L · L = L<sup>2</sup>."},
+{q:"¿Cuál es la fórmula dimensional del <b>volumen</b> de un cubo (largo × ancho × altura)?",o:["L<sup>3</sup>","L<sup>2</sup>","3L","L<sup>−3</sup>"],e:"[Volumen] = L · L · L = L<sup>3</sup>. Los exponentes se suman."},
+{q:"La velocidad es <b>distancia ÷ tiempo</b>. ¿Cuál es su fórmula dimensional?",o:["LT<sup>−1</sup>","LT","L<sup>2</sup>T","T<sup>−1</sup>"],e:"[Velocidad] = L / T = LT<sup>−1</sup>. Al dividir, la T pasa con exponente negativo."},
+{q:"La aceleración es <b>velocidad ÷ tiempo</b>. ¿Cuál es su fórmula dimensional?",o:["LT<sup>−2</sup>","LT<sup>−1</sup>","L<sup>2</sup>T<sup>−1</sup>","LT<sup>2</sup>"],e:"[Aceleración] = LT<sup>−1</sup> / T = LT<sup>−2</sup>."},
+{q:"¿Cuál es la fórmula dimensional de un número, de <b>sen 30°</b> y de <b>2π</b>?",o:["Las tres valen 1","L, M y T respectivamente","Solo el número vale 1","Las tres valen L"],e:"Los números, las constantes y las funciones trigonométricas son adimensionales: su fórmula dimensional es 1."},
+{q:"Como <b>F = m · a</b>, ¿cuál es la fórmula dimensional de la fuerza?",o:["MLT<sup>−2</sup>","ML<sup>2</sup>T<sup>−2</sup>","MLT<sup>−1</sup>","LT<sup>−2</sup>"],e:"[F] = [m] · [a] = M · LT<sup>−2</sup> = MLT<sup>−2</sup>."},
+{q:"Halla la fórmula dimensional de la energía cinética: <b>E = ½ · m · v<sup>2</sup></b>.",o:["ML<sup>2</sup>T<sup>−2</sup>","MLT<sup>−2</sup>","ML<sup>2</sup>T<sup>−1</sup>","M<sup>2</sup>L<sup>2</sup>T<sup>−2</sup>"],e:"[E] = 1 · M · (LT<sup>−1</sup>)<sup>2</sup> = ML<sup>2</sup>T<sup>−2</sup>. El ½ vale 1."},
+{q:"La presión es <b>fuerza ÷ área</b>. ¿Cuál es su fórmula dimensional?",o:["ML<sup>−1</sup>T<sup>−2</sup>","MLT<sup>−2</sup>","ML<sup>2</sup>T<sup>−2</sup>","ML<sup>−2</sup>T<sup>−2</sup>"],e:"[Presión] = MLT<sup>−2</sup> / L<sup>2</sup> = ML<sup>−1</sup>T<sup>−2</sup>."},
+{q:"El caudal es <b>volumen ÷ tiempo</b>. ¿Cuál es su fórmula dimensional?",o:["L<sup>3</sup>T<sup>−1</sup>","L<sup>3</sup>T","L<sup>2</sup>T<sup>−1</sup>","LT<sup>−3</sup>"],e:"[Caudal] = L<sup>3</sup> / T = L<sup>3</sup>T<sup>−1</sup>."},
+{q:"Sofía dice que el área de un círculo es <b>A = π · r</b>. ¿Por qué su fórmula es impostora?",o:["Porque [A] = L y el área debe ser L<sup>2</sup>","Porque π no se puede usar","Porque [A] = L<sup>3</sup>","Porque el radio no tiene dimensión"],e:"[A] = [π] · [r] = 1 · L = L, pero el área debe ser L<sup>2</sup>. La correcta es A = π · r<sup>2</sup>."}
+];
+
+var $=function(id){return document.getElementById(id)};
+var order,i,score,streak,best_streak,errors,name,locked;
+
+function shuf(a){a=a.slice();for(var j=a.length-1;j>0;j--){var k=Math.floor(Math.random()*(j+1));var t=a[j];a[j]=a[k];a[k]=t}return a}
+function show(id){["home","quiz","end"].forEach(function(x){$(x).classList.toggle("hide",x!==id)})}
+function getBest(){try{return localStorage.getItem("dd_best")}catch(e){return null}}
+function setBest(v){try{localStorage.setItem("dd_best",String(v))}catch(e){}}
+function showBest(){var b=getBest();$("best").textContent=b?"Tu mejor puntaje en este equipo: "+b+" / 10":""}
+
+function start(){
+  name=$("nom").value.trim();score=0;streak=0;best_streak=0;errors=[];i=0;
+  show("quiz");render();
+}
+function render(){
+  locked=false;var d=Q[i];
+  $("num").textContent="Pregunta "+(i+1)+" de "+Q.length;
+  $("pts").textContent="⭐ "+score*10+" pts";
+  $("streak").textContent=streak>=2?"🔥 Racha x"+streak:"";
+  $("prog").style.width=(i/Q.length*100)+"%";
+  $("q").innerHTML=d.q;$("fb").innerHTML="";$("next").classList.add("hide");
+  var opts=shuf(d.o.map(function(t,idx){return{t:t,ok:idx===0}}));
+  var box=$("opts");box.innerHTML="";
+  opts.forEach(function(o,n){
+    var b=document.createElement("button");b.className="opt";
+    b.innerHTML='<span class="k">'+"ABCD".charAt(n)+"</span>"+o.t;
+    b.onclick=function(){pick(b,o,opts)};box.appendChild(b);
+  });
+}
+function pick(btn,o,opts){
+  if(locked)return;locked=true;var d=Q[i];
+  var bs=document.querySelectorAll(".opt");
+  bs.forEach(function(b,n){b.disabled=true;if(opts[n].ok)b.classList.add("ok")});
+  if(o.ok){score++;streak++;if(streak>best_streak)best_streak=streak;
+    $("fb").innerHTML='<div class="fb ok"><b>¡Correcto!</b> '+d.e+"</div>";
+  }else{btn.classList.add("ko");streak=0;errors.push(i);
+    $("fb").innerHTML='<div class="fb ko"><b>Casi…</b> '+d.e+"</div>";
+  }
+  $("pts").textContent="⭐ "+score*10+" pts";
+  $("streak").textContent=streak>=2?"🔥 Racha x"+streak:"";
+  $("next").textContent=(i===Q.length-1)?"Ver mi resultado 🏆":"Siguiente ➜";
+  $("next").classList.remove("hide");$("next").focus();
+}
+function nextQ(){if(!locked)return;i++;if(i>=Q.length)finish();else render()}
+function finish(){
+  $("prog").style.width="100%";show("end");
+  $("who").textContent=name?("¡Misión cumplida, "+name+"!"):"¡Misión cumplida!";
+  $("score").textContent=score+" / "+Q.length;
+  var lv,ms;
+  if(score>=9){lv="AD · Logro destacado";ms="¡Eres un Detective Dimensional de primera! Dominas el tema."}
+  else if(score>=7){lv="A · Logro esperado";ms="¡Muy bien! Repasa las preguntas falladas y llegarás al máximo."}
+  else if(score>=5){lv="B · En proceso";ms="Vas por buen camino. Revisa las explicaciones y vuelve a intentarlo."}
+  else{lv="C · En inicio";ms="No te rindas: repasa las reglas de la ficha y juega otra vez. ¡Practicando se aprende!"}
+  $("lvl").textContent=lv;$("msg").textContent=ms+" Mejor racha: "+best_streak+".";
+  var b=parseInt(getBest()||"0",10);if(score>b)setBest(score);
+  var h="";
+  if(errors.length){h="<h3>Para repasar:</h3>";errors.forEach(function(n){h+='<div class="rev"><b>'+Q[n].q+"</b><br>✔ "+Q[n].o[0]+"<br><small>"+Q[n].e+"</small></div>"})}
+  else h='<div class="tip">🎉 ¡Sin errores! Ahora reta a un compañero.</div>';
+  $("rev").innerHTML=h;
+}
+$("go").onclick=start;
+$("next").onclick=nextQ;
+$("again").onclick=function(){show("home");showBest()};
+document.addEventListener("keydown",function(ev){
+  if($("quiz").classList.contains("hide"))return;
+  var n="1234".indexOf(ev.key);if(n<0)n="abcd".indexOf(ev.key.toLowerCase());
+  if(n>=0&&!locked){var bs=document.querySelectorAll(".opt");if(bs[n])bs[n].click()}
+  else if(ev.key==="Enter"&&locked){ev.preventDefault();nextQ()}
+});
+show("home");showBest();
+})();
+</script>
+</body>
+</html>
